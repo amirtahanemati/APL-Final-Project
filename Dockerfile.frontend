@@ -1,0 +1,10 @@
+# استفاده از ایمیج رسمی Nginx
+FROM nginx:alpine
+
+# کپی فایل‌های استاتیک به دایرکتوری Nginx
+COPY index.html /usr/share/nginx/html/
+COPY styles.css /usr/share/nginx/html/
+COPY script.js /usr/share/nginx/html/
+
+# کپی تنظیمات Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
