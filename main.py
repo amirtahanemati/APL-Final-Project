@@ -9,48 +9,35 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500",
-                   "http://127.0.0.1:5500", "http://localhost"],
+    allow_origins=["*", "http://amirtahanemati.ir", "https://amirtahanemati.ir"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-class Student(SQLModel, table=True):
-    STID: str = Field(primary_key=True, unique=True)
+class Human(SQLModel):
     FName: str = Field(index=True)
     LName: str = Field(index=True)
-    Father: str
+    ID: str = Field(unique=True)
     Birth: str
-    IDS: str
     BornCity: str
     Address: str | None = Field(default=None)
     PostalCode: str | None = Field(default=None)
     Cphone: str | None = Field(default=None)
     Hphone: str | None = Field(default=None)
-    Department: str
-    Major: str
-    Married: str
-    ID: str = Field(unique=True)
 
-    class Config:
-        validate_assignment = True
-        extra = "forbid"
-        strict = True
-
-    @validator("STID")
-    def STID_check(cls, v):
-        if not re.fullmatch(r'(4\d{2}|0\d{2})114150\d{2}', v):
-            raise ValueError(
-                "شماره دانشجویی باید با فرمت صحیح (مثل 40111415001) وارد شود")
-        return v
-
-    @validator("FName", "LName", "Father")
+    @validator("FName", "LName")
     def name_check(cls, v):
         if re.match(r'^[\u0600-\u06FF\s]+$', v):
             return v
-        raise ValueError("اسامی باید فقط حروف فارسی داشته باشند")
+        raise ValueError("نام و نام خانوادگی باید با حروف فارسی باشد")
+
+    @validator("ID")
+    def ID_check(cls, v):
+        if re.match(r'^\d{10}$', v):
+            return v
+        raise ValueError("کد ملی باید 10 رقم باشد")
 
     @validator("Birth")
     def Birth_check(cls, v):
@@ -61,12 +48,6 @@ class Student(SQLModel, table=True):
         except:
             raise ValueError("فرمت تاریخ باید به صورت yyyy/mm/dd باشد")
         return v
-
-    @validator("IDS")
-    def IDS_check(cls, v):
-        if re.match(r'^\d{6}$', v):
-            return v
-        raise ValueError("سریال شناسنامه باید 6 رقم باشد")
 
     @validator("BornCity")
     def city_check(cls, v):
@@ -102,6 +83,39 @@ class Student(SQLModel, table=True):
         if v and not re.match(r'^0\d{10}$', v):
             raise ValueError("تلفن ثابت باید 11 رقم و با 0 شروع شود")
         return v
+
+
+class Student(Human, SQLModel, table=True):
+    STID: str = Field(primary_key=True, unique=True)
+    Father: str
+    IDS: str
+    Department: str
+    Major: str
+    Married: str
+
+    class Config:
+        validate_assignment = True
+        extra = "forbid"
+        strict = True
+
+    @validator("STID")
+    def STID_check(cls, v):
+        if not re.fullmatch(r'(4\d{2}|0\d{2})114150\d{2}', v):
+            raise ValueError(
+                "شماره دانشجویی باید با فرمت صحیح (مثل 40111415001) وارد شود")
+        return v
+
+    @validator("Father")
+    def father_name_check(cls, v):
+        if re.match(r'^[\u0600-\u06FF\s]+$', v):
+            return v
+        raise ValueError("اسامی باید فقط حروف فارسی داشته باشند")
+
+    @validator("IDS")
+    def IDS_check(cls, v):
+        if re.match(r'^\d{6}$', v):
+            return v
+        raise ValueError("سریال شناسنامه باید 6 رقم باشد")
 
     @validator("Department")
     def Department_check(cls, v):
@@ -121,26 +135,11 @@ class Student(SQLModel, table=True):
             return v
         raise ValueError("وضعیت تاهل معتبر نیست")
 
-    @validator("ID")
-    def ID_check(cls, v):
-        if re.match(r'^\d{10}$', v):
-            return v
-        raise ValueError("کد ملی باید 10 رقم باشد")
 
-
-class Lecturer(SQLModel, table=True):
+class Lecturer(Human, SQLModel, table=True):
     LID: str = Field(primary_key=True, unique=True)
-    FName: str = Field(index=True)
-    LName: str = Field(index=True)
-    ID: str = Field(unique=True)
     Department: str
     Major: str
-    Birth: str
-    BornCity: str
-    Address: str | None = Field(default=None)
-    PostalCode: str | None = Field(default=None)
-    Cphone: str | None = Field(default=None)
-    Hphone: str | None = Field(default=None)
 
     class Config:
         validate_assignment = True
@@ -153,18 +152,6 @@ class Lecturer(SQLModel, table=True):
             raise ValueError("کد استادی باید 6 رقم باشد")
         return v
 
-    @validator("FName", "LName")
-    def name_check(cls, v):
-        if re.match(r'^[\u0600-\u06FF\s]+$', v):
-            return v
-        raise ValueError("اسامی باید فقط حروف فارسی داشته باشند")
-
-    @validator("ID")
-    def ID_check(cls, v):
-        if re.match(r'^\d{10}$', v):
-            return v
-        raise ValueError("کد ملی باید 10 رقم باشد")
-
     @validator("Department")
     def Department_check(cls, v):
         if v in ["فنی مهندسی", "علوم پایه", "اقتصاد", "دامپزشکی"]:
@@ -176,51 +163,6 @@ class Lecturer(SQLModel, table=True):
         if v in ["مهندسی کامپیوتر", "مهندسی مکانیک", "مهندسی برق"]:
             return v
         raise ValueError("رشته تحصیلی معتبر نیست")
-
-    @validator("Birth")
-    def Birth_check(cls, v):
-        try:
-            year, month, day = map(int, v.split('/'))
-            if not (1300 <= year <= 1400 and 1 <= month <= 12 and 1 <= day <= 31):
-                raise ValueError("تاریخ تولد باید بین ۱۳۰۰ تا ۱۴۰۰ باشد")
-        except:
-            raise ValueError("فرمت تاریخ باید به صورت yyyy/mm/dd باشد")
-        return v
-
-    @validator("BornCity")
-    def city_check(cls, v):
-        if v in [
-            "تهران", "کرج", "مشهد", "تبریز", "اصفهان", "اهواز", "شیراز", "قم", "کرمانشاه",
-            "ارومیه", "رشت", "زاهدان", "کرمان", "ساری", "اراک", "همدان", "بندر عباس", "یاسوج",
-            "بوشهر", "سنندج", "خرم آباد", "زنجان", "قزوین", "بجنورد", "گرگان", "اردبیل",
-                "ایلام", "شهر کرد", "بیرجند", "یزد", "ماهشهر"]:
-            return v
-        raise ValueError("شهر تولد معتبر نیست")
-
-    @validator("Address")
-    def address_check(cls, v):
-        if v and (len(v) > 100 or not re.match(r'^[\u0600-\u06FF\s]*$', v)):
-            raise ValueError(
-                "آدرس باید حداکثر 100 کاراکتر و فقط حروف فارسی باشد")
-        return v
-
-    @validator("PostalCode")
-    def PostalCode_check(cls, v):
-        if v and not re.match(r'^\d{10}$', v):
-            raise ValueError("کد پستی باید 10 رقم باشد")
-        return v
-
-    @validator("Cphone")
-    def Cphone_check(cls, v):
-        if v and not re.match(r'^09\d{9}$', v):
-            raise ValueError("تلفن همراه باید با 09 شروع شود و 11 رقم باشد")
-        return v
-
-    @validator("Hphone")
-    def Hphone_check(cls, v):
-        if v and not re.match(r'^0\d{10}$', v):
-            raise ValueError("تلفن ثابت باید 11 رقم و با 0 شروع شود")
-        return v
 
 
 class Course(SQLModel, table=True):
@@ -289,8 +231,6 @@ SessionDep = Annotated[Session, Depends(get_session)]
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
-
-# Endpointهای اصلاح‌شده
 
 
 @app.post("/students/")

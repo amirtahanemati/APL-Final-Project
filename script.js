@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://amirtahanemati.ir/api';
 
 // DOM Elements
 const tabs = document.querySelectorAll('.tab');

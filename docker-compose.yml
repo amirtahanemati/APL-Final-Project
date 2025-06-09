@@ -1,26 +1,23 @@
+version: '3.8'
+
 services:
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
+    build: .
     ports:
       - "8000:8000"
     volumes:
       - ./database.db:/app/database.db
-    networks:
-      - app-network
+    restart: unless-stopped
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
+    image: nginx:alpine
     ports:
       - "80:80"
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html
+      - ./styles.css:/usr/share/nginx/html/styles.css
+      - ./script.js:/usr/share/nginx/html/script.js
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - backend
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
+    restart: unless-stopped
