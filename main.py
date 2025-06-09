@@ -17,7 +17,7 @@ app.add_middleware(
 )
 
 
-class Human(SQLModel):
+class Human(SQLModel): #کلاس شخص
     FName: str = Field(index=True)
     LName: str = Field(index=True)
     ID: str = Field(unique=True)
