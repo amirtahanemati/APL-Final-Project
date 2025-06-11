@@ -5,7 +5,7 @@ from sqlmodel import Field, Session, SQLModel, create_engine, or_, select
 from pydantic import validator
 import re
 
-app = FastAPI(root_path="/api")
+app = FastAPI(root_path="/api")  # docs
 
 app.add_middleware(
     CORSMiddleware,
